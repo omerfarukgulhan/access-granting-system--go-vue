@@ -65,7 +65,7 @@ func (userController *UserController) GetUserById(ctx *gin.Context) {
 
 func (userController *UserController) AddUser(ctx *gin.Context) {
 	var userRequest requests.UserCreateRequest
-	if err := bindAndValidate(ctx, &userRequest); err != nil {
+	if err := bindAndValidateUsers(ctx, &userRequest); err != nil {
 		return
 	}
 
@@ -106,7 +106,7 @@ func (userController *UserController) UpdateUser(ctx *gin.Context) {
 	}
 
 	var userUpdateRequest requests.UserUpdateRequest
-	if err := bindAndValidate(ctx, &userUpdateRequest); err != nil {
+	if err := bindAndValidateUsers(ctx, &userUpdateRequest); err != nil {
 		return
 	}
 
@@ -142,7 +142,7 @@ func (userController *UserController) UpdatePassword(ctx *gin.Context) {
 	}
 
 	var passwordUpdate requests.UserPasswordUpdateRequest
-	if err := bindAndValidate(ctx, &passwordUpdate); err != nil {
+	if err := bindAndValidateUsers(ctx, &passwordUpdate); err != nil {
 		return
 	}
 
@@ -157,7 +157,7 @@ func (userController *UserController) UpdatePassword(ctx *gin.Context) {
 
 func (userController *UserController) ResetPassword(ctx *gin.Context) {
 	var passwordReset requests.UserPasswordResetRequest
-	if err := bindAndValidate(ctx, &passwordReset); err != nil {
+	if err := bindAndValidateUsers(ctx, &passwordReset); err != nil {
 		return
 	}
 
@@ -172,7 +172,7 @@ func (userController *UserController) ResetPassword(ctx *gin.Context) {
 
 func (userController *UserController) SetPassword(ctx *gin.Context) {
 	var passwordSet requests.UserPasswordSetRequest
-	if err := bindAndValidate(ctx, &passwordSet); err != nil {
+	if err := bindAndValidateUsers(ctx, &passwordSet); err != nil {
 		return
 	}
 
@@ -224,7 +224,7 @@ func (userController *UserController) DeleteUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, result.NewResult(true, messages.DataDeleted))
 }
 
-func bindAndValidate(ctx *gin.Context, req interface{}) error {
+func bindAndValidateUsers(ctx *gin.Context, req interface{}) error {
 	if err := ctx.ShouldBind(req); err != nil {
 		ctx.JSON(http.StatusBadRequest, result.NewResult(false, messages.InvalidRequestData))
 		return err

@@ -11,18 +11,21 @@ import (
 type MainRouter struct {
 	authController *AuthController
 	userController *UserController
+	roleController *RoleController
 }
 
-func NewRouter(authController *AuthController, userController *UserController) *MainRouter {
+func NewRouter(authController *AuthController, userController *UserController, roleController *RoleController) *MainRouter {
 	return &MainRouter{
 		authController: authController,
 		userController: userController,
+		roleController: roleController,
 	}
 }
 
 func (mainRouter *MainRouter) RegisterRoutes(server *gin.Engine) {
 	mainRouter.authController.RegisterAuthRoutes(server)
 	mainRouter.userController.RegisterUserRoutes(server)
+	mainRouter.roleController.RegisterRoleRoutes(server)
 }
 
 func InitializeRouter(db *gorm.DB, server *gin.Engine) {
@@ -33,6 +36,10 @@ func InitializeRouter(db *gorm.DB, server *gin.Engine) {
 	authService := service.NewAuthService(userService)
 	authController := NewAuthController(authService)
 
-	mainRouter := NewRouter(authController, userController)
+	roleRepo := persistence.NewRoleRepository(db)
+	roleService := service.NewRoleService(roleRepo)
+	roleController := NewRoleController(roleService)
+
+	mainRouter := NewRouter(authController, userController, roleController)
 	mainRouter.RegisterRoutes(server)
 }
