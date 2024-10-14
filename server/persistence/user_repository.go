@@ -3,6 +3,7 @@ package persistence
 import (
 	"access-granting/domain/entities"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -28,9 +29,15 @@ func NewUserRepository(db *gorm.DB) IUserRepository {
 
 func (userRepository *UserRepository) GetUsers() ([]entities.User, error) {
 	var users []entities.User
-	result := userRepository.db.Preload("Roles").Where("is_active = ?", true).Find(&users)
+	result := userRepository.db.Where("is_active = ?", true).Find(&users)
 	if result.Error != nil {
-		return nil, result.Error
+		if errors.Is(result.Error, gorm.ErrInvalidDB) {
+			return nil, fmt.Errorf("database connection error: %w", result.Error)
+		}
+		return nil, fmt.Errorf("failed to retrieve users")
+	}
+	if len(users) == 0 {
+		return nil, fmt.Errorf("no active users found")
 	}
 	return users, nil
 }
@@ -39,7 +46,13 @@ func (userRepository *UserRepository) GetUserById(userId int64) (entities.User, 
 	var user entities.User
 	err := userRepository.db.Preload("Roles").First(&user, userId).Error
 	if err != nil {
-		return entities.User{}, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entities.User{}, fmt.Errorf("user with id %d not found", userId)
+		}
+		if errors.Is(err, gorm.ErrInvalidDB) {
+			return entities.User{}, fmt.Errorf("database connection error: %w", err)
+		}
+		return entities.User{}, fmt.Errorf("failed to retrieve user by id %d", userId)
 	}
 	return user, nil
 }
@@ -60,7 +73,13 @@ func (userRepository *UserRepository) getUserByField(field, value string) (entit
 	var user entities.User
 	err := userRepository.db.Preload("Roles").Where(field+" = ?", value).First(&user).Error
 	if err != nil {
-		return entities.User{}, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entities.User{}, fmt.Errorf("user with %s %s not found", field, value)
+		}
+		if errors.Is(err, gorm.ErrInvalidDB) {
+			return entities.User{}, fmt.Errorf("database connection error: %w", err)
+		}
+		return entities.User{}, fmt.Errorf("failed to retrieve user by %s %s", field, value)
 	}
 	return user, nil
 }
@@ -68,7 +87,13 @@ func (userRepository *UserRepository) getUserByField(field, value string) (entit
 func (userRepository *UserRepository) AddUser(user entities.User) (entities.User, error) {
 	err := userRepository.db.Create(&user).Error
 	if err != nil {
-		return entities.User{}, err
+		if isUniqueConstraintError(err, "email") {
+			return entities.User{}, fmt.Errorf("email %s is already in use", user.Email)
+		}
+		if isUniqueConstraintError(err, "username") {
+			return entities.User{}, fmt.Errorf("username %s is already taken", user.Username)
+		}
+		return entities.User{}, fmt.Errorf("failed to add user")
 	}
 	return user, nil
 }
@@ -76,18 +101,27 @@ func (userRepository *UserRepository) AddUser(user entities.User) (entities.User
 func (userRepository *UserRepository) UpdateUser(userId int64, user entities.User) (entities.User, error) {
 	err := userRepository.db.Model(&user).Where("id = ?", userId).Updates(user).Error
 	if err != nil {
-		return entities.User{}, err
+		if isUniqueConstraintError(err, "email") {
+			return entities.User{}, fmt.Errorf("email %s is already in use", user.Email)
+		}
+		if isUniqueConstraintError(err, "username") {
+			return entities.User{}, fmt.Errorf("username %s is already taken", user.Username)
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entities.User{}, fmt.Errorf("user with id %d not found", userId)
+		}
+		return entities.User{}, fmt.Errorf("failed to update user with id %d", userId)
 	}
 	return user, nil
 }
 
-func (r *UserRepository) DeleteUser(userId int64) error {
-	result := r.db.Delete(&entities.User{}, userId)
+func (userRepository *UserRepository) DeleteUser(userId int64) error {
+	result := userRepository.db.Delete(&entities.User{}, userId)
 	if result.Error != nil {
-		return result.Error
+		return fmt.Errorf("failed to delete user with id %d", userId)
 	}
 	if result.RowsAffected == 0 {
-		return errors.New("user not found")
+		return fmt.Errorf("user with id %d not found", userId)
 	}
 	return nil
 }
