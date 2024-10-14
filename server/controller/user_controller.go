@@ -41,7 +41,7 @@ func (userController *UserController) RegisterUserRoutes(server *gin.Engine) {
 func (userController *UserController) GetUsers(ctx *gin.Context) {
 	users, err := userController.userService.GetUsers()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err.Error())
+		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, err.Error()))
 		return
 	}
 	ctx.JSON(http.StatusOK, result.NewDataResult(true, messages.DataFetched, users))
@@ -56,7 +56,7 @@ func (userController *UserController) GetUserById(ctx *gin.Context) {
 
 	user, err := userController.userService.GetUserById(userId)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, result.NewResult(false, messages.NotFound))
+		ctx.JSON(http.StatusNotFound, result.NewResult(false, err.Error()))
 		return
 	}
 
@@ -71,7 +71,7 @@ func (userController *UserController) AddUser(ctx *gin.Context) {
 
 	userResponse, err := userController.userService.AddUser(userRequest)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, messages.DataCreationFailed))
+		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, err.Error()))
 		return
 	}
 
@@ -82,7 +82,7 @@ func (userController *UserController) ActivateUser(ctx *gin.Context) {
 	token := ctx.Param("token")
 	activatedUser, err := userController.userService.ActivateUser(token)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, messages.ActivationFailed))
+		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, err.Error()))
 		return
 	}
 	ctx.JSON(http.StatusOK, result.NewDataResult(true, messages.UserActivated, activatedUser))
@@ -112,7 +112,7 @@ func (userController *UserController) UpdateUser(ctx *gin.Context) {
 
 	currentUser, err := userController.userService.GetUserById(userId)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, messages.NotFound))
+		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, err.Error()))
 		return
 	}
 
@@ -127,7 +127,7 @@ func (userController *UserController) UpdateUser(ctx *gin.Context) {
 		ProfileImage: profileImagePath,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, messages.UpdateFail))
+		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, err.Error()))
 		return
 	}
 
@@ -205,7 +205,7 @@ func (userController *UserController) DeleteUser(ctx *gin.Context) {
 
 	currentUser, err := userController.userService.GetUserById(userId)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, messages.NotFound))
+		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, err.Error()))
 		return
 	}
 
@@ -217,7 +217,7 @@ func (userController *UserController) DeleteUser(ctx *gin.Context) {
 
 	err = userController.userService.DeleteUser(userId)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, result.NewResult(false, messages.NotFound))
+		ctx.JSON(http.StatusNotFound, result.NewResult(false, err.Error()))
 		return
 	}
 
@@ -240,7 +240,7 @@ func checkAuthorization(ctx *gin.Context, authUserId, userId int64) bool {
 	return true
 }
 
-func handleProfileImage(ctx *gin.Context, currentUser *responses.UserResponse, newProfileImage *multipart.FileHeader) (string, error) {
+func handleProfileImage(ctx *gin.Context, currentUser *responses.UserWithRolesResponse, newProfileImage *multipart.FileHeader) (string, error) {
 	var profileImagePath string
 	if newProfileImage != nil {
 		path, err := util.SaveProfileImage(ctx, newProfileImage)
