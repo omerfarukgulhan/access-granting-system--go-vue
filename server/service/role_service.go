@@ -12,9 +12,9 @@ import (
 
 type IRoleService interface {
 	GetRoles() ([]responses.RoleResponse, error)
-	GetRoleById(roleId int64) (responses.RoleResponse, error)
+	GetRoleById(roleId int64) (responses.RoleWithUsersResponse, error)
 	AddRole(role requests.RoleCreateRequest) (responses.RoleResponse, error)
-	UpdateRole(roleId int64, role requests.RoleUpdateRequest) (responses.RoleResponse, error)
+	UpdateRole(roleId int64, role requests.RoleUpdateRequest) (responses.RoleWithUsersResponse, error)
 	DeleteRole(roleId int64) error
 }
 
@@ -34,12 +34,12 @@ func (roleService *RoleService) GetRoles() ([]responses.RoleResponse, error) {
 	return convertRolesToResponses(roles), nil
 }
 
-func (roleService *RoleService) GetRoleById(roleId int64) (responses.RoleResponse, error) {
+func (roleService *RoleService) GetRoleById(roleId int64) (responses.RoleWithUsersResponse, error) {
 	role, err := roleService.roleRepository.GetRoleById(roleId)
 	if err != nil {
-		return responses.RoleResponse{}, err
+		return responses.RoleWithUsersResponse{}, err
 	}
-	return convertRoleToResponse(role), nil
+	return convertRoleWithUsersToResponse(role), nil
 }
 
 func (roleService *RoleService) AddRole(role requests.RoleCreateRequest) (responses.RoleResponse, error) {
@@ -66,22 +66,20 @@ func (roleService *RoleService) AddRole(role requests.RoleCreateRequest) (respon
 	return convertRoleToResponse(createdRole), nil
 }
 
-func (roleService *RoleService) UpdateRole(roleId int64, role requests.RoleUpdateRequest) (responses.RoleResponse, error) {
+func (roleService *RoleService) UpdateRole(roleId int64, role requests.RoleUpdateRequest) (responses.RoleWithUsersResponse, error) {
 	err := validateRoleName(role.Name)
 	if err != nil {
-		return responses.RoleResponse{}, err
+		return responses.RoleWithUsersResponse{}, err
 	}
 
-	updatedRole := entities.Role{
+	updatedRole, err := roleService.roleRepository.UpdateRole(roleId, entities.Role{
 		Name: role.Name,
-	}
-
-	updatedRole, err = roleService.roleRepository.UpdateRole(roleId, updatedRole)
+	})
 	if err != nil {
-		return responses.RoleResponse{}, err
+		return responses.RoleWithUsersResponse{}, err
 	}
 
-	return convertRoleToResponse(updatedRole), nil
+	return convertRoleWithUsersToResponse(updatedRole), nil
 }
 
 func (roleService *RoleService) DeleteRole(roleId int64) error {
@@ -89,15 +87,19 @@ func (roleService *RoleService) DeleteRole(roleId int64) error {
 }
 
 func convertRolesToResponses(roles []entities.Role) []responses.RoleResponse {
-	roleResponses := make([]responses.RoleResponse, len(roles))
+	rolesResponses := make([]responses.RoleResponse, len(roles))
 	for i, role := range roles {
-		roleResponses[i] = responses.NewRoleResponse(role)
+		rolesResponses[i] = responses.NewRoleResponse(role)
 	}
-	return roleResponses
+	return rolesResponses
 }
 
 func convertRoleToResponse(role entities.Role) responses.RoleResponse {
 	return responses.NewRoleResponse(role)
+}
+
+func convertRoleWithUsersToResponse(role entities.Role) responses.RoleWithUsersResponse {
+	return responses.NewRoleWithUsersResponse(role)
 }
 
 func validateRoleName(roleName string) error {
