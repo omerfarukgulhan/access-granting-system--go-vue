@@ -8,21 +8,19 @@ import (
 	"access-granting/domain/responses"
 	"access-granting/persistence"
 	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type IUserService interface {
 	GetUsers() ([]responses.UserResponse, error)
-	GetUserById(userId int64) (responses.UserResponse, error)
+	GetUserById(userId int64) (responses.UserWithRolesResponse, error)
 	GetUserByEmail(email string) (entities.User, error)
 	AddUser(user requests.UserCreateRequest) (responses.UserResponse, error)
 	ActivateUser(token string) (responses.UserResponse, error)
-	UpdateUser(userId int64, user requests.UserUpdateServiceRequest) (responses.UserResponse, error)
+	UpdateUser(userId int64, user requests.UserUpdateServiceRequest) (responses.UserWithRolesResponse, error)
 	UpdatePassword(userId int64, passwordUpdate requests.UserPasswordUpdateRequest) error
 	ResetPassword(passwordReset requests.UserPasswordResetRequest) error
 	SetPassword(token string, passwordSet requests.UserPasswordSetRequest) error
@@ -46,12 +44,12 @@ func (userService *UserService) GetUsers() ([]responses.UserResponse, error) {
 	return convertUsersToResponses(users), nil
 }
 
-func (userService *UserService) GetUserById(userId int64) (responses.UserResponse, error) {
+func (userService *UserService) GetUserById(userId int64) (responses.UserWithRolesResponse, error) {
 	user, err := userService.userRepository.GetUserById(userId)
 	if err != nil {
-		return responses.UserResponse{}, err
+		return responses.UserWithRolesResponse{}, err
 	}
-	return convertUserToResponse(user), nil
+	return convertUserWithRolesToResponse(user), nil
 }
 
 func (userService *UserService) GetUserByEmail(email string) (entities.User, error) {
@@ -107,7 +105,7 @@ func (userService *UserService) ActivateUser(token string) (responses.UserRespon
 
 	user, err := userService.userRepository.GetUserByActivationToken(token)
 	if err != nil {
-		return responses.UserResponse{}, fmt.Errorf("user not found for the given token: %w", err)
+		return responses.UserResponse{}, err
 	}
 
 	if user.IsActive {
@@ -124,29 +122,25 @@ func (userService *UserService) ActivateUser(token string) (responses.UserRespon
 	return convertUserToResponse(updatedUser), nil
 }
 
-func (userService *UserService) UpdateUser(userId int64, user requests.UserUpdateServiceRequest) (responses.UserResponse, error) {
+func (userService *UserService) UpdateUser(userId int64, user requests.UserUpdateServiceRequest) (responses.UserWithRolesResponse, error) {
 	err := validateUserUpdate(user)
 	if err != nil {
-		return responses.UserResponse{}, err
-	}
-
-	if strings.TrimSpace(user.Username) == "" || len(user.Username) < 4 {
-		return responses.UserResponse{}, errors.New("username must be at least 4 characters long and not empty")
+		return responses.UserWithRolesResponse{}, err
 	}
 
 	existingUser, err := userService.userRepository.GetUserById(userId)
 	if err != nil {
-		return responses.UserResponse{}, err
+		return responses.UserWithRolesResponse{}, err
 	}
 
 	existingUser.Username = user.Username
 	existingUser.ProfileImage = user.ProfileImage
 	updatedUser, err := userService.userRepository.UpdateUser(userId, existingUser)
 	if err != nil {
-		return responses.UserResponse{}, err
+		return responses.UserWithRolesResponse{}, err
 	}
 
-	return convertUserToResponse(updatedUser), nil
+	return convertUserWithRolesToResponse(updatedUser), nil
 }
 
 func (userService *UserService) UpdatePassword(userId int64, passwordUpdate requests.UserPasswordUpdateRequest) error {
@@ -204,7 +198,7 @@ func (userService *UserService) SetPassword(token string, passwordSet requests.U
 
 	user, err := userService.userRepository.GetUserByPasswordResetToken(token)
 	if err != nil {
-		return fmt.Errorf("user not found for the given token: %w", err)
+		return err
 	}
 
 	hashedPassword, err := security.HashPassword(passwordSet.Password, userService.hashCost)
@@ -220,19 +214,7 @@ func (userService *UserService) SetPassword(token string, passwordSet requests.U
 }
 
 func (userService *UserService) DeleteUser(userId int64) error {
-	_, err := userService.userRepository.GetUserById(userId)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("user with id %d not found", userId)
-		}
-		return err
-	}
-
-	if err := userService.userRepository.DeleteUser(userId); err != nil {
-		return fmt.Errorf("failed to delete user with id %d: %w", userId, err)
-	}
-
-	return nil
+	return userService.userRepository.DeleteUser(userId)
 }
 
 func convertUsersToResponses(users []entities.User) []responses.UserResponse {
@@ -245,6 +227,10 @@ func convertUsersToResponses(users []entities.User) []responses.UserResponse {
 
 func convertUserToResponse(user entities.User) responses.UserResponse {
 	return responses.NewUserResponse(user)
+}
+
+func convertUserWithRolesToResponse(user entities.User) responses.UserWithRolesResponse {
+	return responses.NewUserWithRolesResponse(user)
 }
 
 func validateUserCreate(req requests.UserCreateRequest) error {
