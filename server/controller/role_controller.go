@@ -3,6 +3,7 @@ package controller
 import (
 	"access-granting/common/util/result"
 	"access-granting/controller/messages"
+	"access-granting/controller/middlewares"
 	"access-granting/domain/requests"
 	"access-granting/service"
 	"net/http"
@@ -22,6 +23,8 @@ func NewRoleController(roleService service.IRoleService) *RoleController {
 func (roleController *RoleController) RegisterRoleRoutes(server *gin.Engine) {
 	roleGroup := server.Group("/roles")
 	{
+		roleGroup.Use(middlewares.Authenticate)
+		roleGroup.Use(middlewares.Authorize("Admin"))
 		roleGroup.GET("", roleController.GetRoles)
 		roleGroup.GET("/:id", roleController.GetRoleById)
 		roleGroup.POST("", roleController.AddRole)
@@ -42,7 +45,7 @@ func (roleController *RoleController) GetRoles(ctx *gin.Context) {
 func (roleController *RoleController) GetRoleById(ctx *gin.Context) {
 	roleId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, result.NewResult(false, "Invalid role ID"))
+		ctx.JSON(http.StatusBadRequest, result.NewResult(false, messages.InvalidId))
 		return
 	}
 
@@ -73,7 +76,7 @@ func (roleController *RoleController) AddRole(ctx *gin.Context) {
 func (roleController *RoleController) UpdateRole(ctx *gin.Context) {
 	roleId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, result.NewResult(false, "Invalid role ID"))
+		ctx.JSON(http.StatusBadRequest, result.NewResult(false, messages.InvalidId))
 		return
 	}
 
@@ -94,7 +97,7 @@ func (roleController *RoleController) UpdateRole(ctx *gin.Context) {
 func (roleController *RoleController) DeleteRole(ctx *gin.Context) {
 	roleId, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, result.NewResult(false, "Invalid role ID"))
+		ctx.JSON(http.StatusBadRequest, result.NewResult(false, messages.InvalidId))
 		return
 	}
 
@@ -103,7 +106,7 @@ func (roleController *RoleController) DeleteRole(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusNoContent, nil)
+	ctx.JSON(http.StatusOK, result.NewResult(true, messages.DataDeleted))
 }
 
 func bindAndValidateRoles(ctx *gin.Context, req interface{}) error {
