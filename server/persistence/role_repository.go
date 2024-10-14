@@ -3,6 +3,7 @@ package persistence
 import (
 	"access-granting/domain/entities"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -26,57 +27,59 @@ func NewRoleRepository(db *gorm.DB) IRoleRepository {
 func (roleRepository *RoleRepository) GetRoles() ([]entities.Role, error) {
 	var roles []entities.Role
 	if err := roleRepository.db.Find(&roles).Error; err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to retrieve roles: %w", err)
 	}
 	return roles, nil
 }
 
 func (roleRepository *RoleRepository) GetRoleById(roleId int64) (entities.Role, error) {
 	var role entities.Role
-	if err := roleRepository.db.First(&role, roleId).Error; err != nil {
+	if err := roleRepository.db.Preload("Users").First(&role, roleId).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return role, errors.New("role not found")
+			return role, fmt.Errorf("role with id %d not found", roleId)
 		}
-		return role, err
+		return role, fmt.Errorf("failed to retrieve role with id %d", roleId)
 	}
 	return role, nil
 }
 
 func (roleRepository *RoleRepository) AddRole(role entities.Role) (entities.Role, error) {
 	if err := roleRepository.db.Create(&role).Error; err != nil {
-		return role, err
+		if isUniqueConstraintError(err, "name") {
+			return role, fmt.Errorf("role name '%s' already exists", role.Name)
+		}
+		return role, fmt.Errorf("failed to add role")
 	}
 	return role, nil
 }
 
 func (roleRepository *RoleRepository) UpdateRole(roleId int64, role entities.Role) (entities.Role, error) {
-	var existingRole entities.Role
-	if err := roleRepository.db.First(&existingRole, roleId).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return existingRole, errors.New("role not found")
+	err := roleRepository.db.Model(&role).Where("id = ?", roleId).Updates(role).Error
+	if err != nil {
+		if isUniqueConstraintError(err, "name") {
+			return entities.Role{}, fmt.Errorf("name %s is already in use", role.Name)
 		}
-		return existingRole, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entities.Role{}, fmt.Errorf("role with id %d not found", roleId)
+		}
+		return entities.Role{}, fmt.Errorf("failed to update role with id %d", roleId)
+	}
+	var updatedRole entities.Role
+	err = roleRepository.db.Preload("Users").Where("id = ?", roleId).First(&updatedRole).Error
+	if err != nil {
+		return entities.Role{}, fmt.Errorf("failed to fetch updated role with related information")
 	}
 
-	if err := roleRepository.db.Model(&existingRole).Updates(role).Error; err != nil {
-		return existingRole, err
-	}
-
-	return existingRole, nil
+	return updatedRole, nil
 }
 
 func (roleRepository *RoleRepository) DeleteRole(roleId int64) error {
-	var role entities.Role
-	if err := roleRepository.db.First(&role, roleId).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("role not found")
-		}
-		return err
+	result := roleRepository.db.Delete(&entities.Role{}, roleId)
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete role with id %d", roleId)
 	}
-
-	if err := roleRepository.db.Delete(&role).Error; err != nil {
-		return err
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("role with id %d not found", roleId)
 	}
-
 	return nil
 }
