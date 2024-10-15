@@ -1,7 +1,6 @@
 package service
 
 import (
-	"access-granting/common/util/id"
 	"access-granting/domain/entities"
 	"access-granting/domain/requests"
 	"access-granting/domain/responses"
@@ -48,16 +47,9 @@ func (roleService *RoleService) AddRole(role requests.RoleCreateRequest) (respon
 		return responses.RoleResponse{}, err
 	}
 
-	uniqueId, err := id.GetUniqueId()
-	if err != nil {
-		return responses.RoleResponse{}, err
-	}
-
 	newRole := entities.Role{
-		Id:   uniqueId,
 		Name: role.Name,
 	}
-
 	createdRole, err := roleService.roleRepository.AddRole(newRole)
 	if err != nil {
 		return responses.RoleResponse{}, err

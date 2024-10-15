@@ -2,7 +2,6 @@ package service
 
 import (
 	"access-granting/common/security"
-	"access-granting/common/util/id"
 	"access-granting/domain/entities"
 	"access-granting/domain/requests"
 	"access-granting/domain/responses"
@@ -71,14 +70,8 @@ func (userService *UserService) AddUser(user requests.UserCreateRequest) (respon
 		return responses.UserResponse{}, err
 	}
 
-	uniqueId, err := id.GetUniqueId()
-	if err != nil {
-		return responses.UserResponse{}, err
-	}
-
 	activationToken := uuid.New().String()
 	newUser := entities.User{
-		Id:              uniqueId,
 		Username:        user.Username,
 		Email:           user.Email,
 		Password:        hashedPassword,

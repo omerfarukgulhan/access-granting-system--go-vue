@@ -2,7 +2,6 @@ package postgresql
 
 import (
 	"access-granting/common/security"
-	"access-granting/common/util/id"
 	"access-granting/domain/entities"
 	"errors"
 	"log"
@@ -24,8 +23,8 @@ func SeedData(db *gorm.DB) {
 	role := entities.Role{Name: "Admin"}
 	if err := db.Where("name = ?", role.Name).First(&role).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			roleId, _ := id.GetUniqueId()
-			role.Id = roleId
+
+			role.Id = 1
 			if err := db.Create(&role).Error; err != nil {
 				log.Fatalf("Failed to seed roles: %v", err)
 			}
@@ -37,10 +36,9 @@ func SeedData(db *gorm.DB) {
 		log.Println("Role already exists. No need to seed.")
 	}
 
-	userId, _ := id.GetUniqueId()
 	hashedPassword, _ := security.HashPassword("P4ssword", 10)
 	user := entities.User{
-		Id:           userId,
+		Id:           1,
 		Username:     "username1",
 		Email:        "omer@omer.com",
 		Password:     hashedPassword,
