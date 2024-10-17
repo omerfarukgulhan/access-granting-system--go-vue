@@ -15,7 +15,17 @@ func MigrateTables(db *gorm.DB) {
 		log.Fatalf("Failed to migrate tables: %v", err)
 	}
 
-	log.Println("Tables migrated successfully.")
+	err = db.Exec("ALTER TABLE user_roles ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE").Error
+	if err != nil {
+		log.Fatalf("Failed to add foreign key constraint for user_id: %v", err)
+	}
+
+	err = db.Exec("ALTER TABLE user_roles ADD CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE").Error
+	if err != nil {
+		log.Fatalf("Failed to add foreign key constraint for role_id: %v", err)
+	}
+
+	log.Println("Tables migrated and foreign key constraints added successfully.")
 	SeedData(db)
 }
 
