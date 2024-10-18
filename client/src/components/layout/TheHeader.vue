@@ -23,25 +23,38 @@
           </button>
         </div>
         <div v-if="isLoggedIn" class="navbar-item">
+          <router-link class="navbar-item has-text-black" to="/profile">{{ user.username }}</router-link>
           <button class="button is-light" @click="logout">Logout</button>
         </div>
       </div>
     </div>
   </nav>
 </template>
+
 <script>
 export default {
   computed: {
     isLoggedIn() {
-      return true
+      return !!this.$store.getters['auth/isAuthenticated'];
     },
     isAdmin() {
-      return true
-    }
+      return this.$store.getters['auth/isAdmin'];
+    },
+    user() {
+      return this.$store.getters['auth/getUser'];
+    },
   },
   methods: {
     logout() {
-    }
-  }
+      this.$store.dispatch('auth/logout');
+      this.$router.push('/');
+    },
+  },
 }
 </script>
+
+<style scoped>
+.navbar-item {
+  margin-right: 10px;
+}
+</style>

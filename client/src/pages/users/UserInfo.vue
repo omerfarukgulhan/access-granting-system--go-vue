@@ -1,19 +1,35 @@
 <template>
-  <div v-if="user">
-    <h1>User Information</h1>
-    <div class="user-info">
-      <img :src="user.profileImage" alt="Profile Image"/>
-      <p><strong>Username:</strong> {{ user.username }}</p>
-      <p><strong>Email:</strong> {{ user.email }}</p>
-      <p><strong>Roles:</strong></p>
-      <ul>
-        <li v-for="role in user.roles" :key="role.id">{{ role.name }}</li>
-      </ul>
+  <section class="section">
+    <div class="container has-text-centered is-flex is-justify-content-center is-align-items-center full-height">
+      <div class="card has-background-white-bis" style="max-width: 400px; margin: 0 auto;">
+        <!-- Use Bulma class for white background -->
+        <div class="card-image">
+          <figure class="image is-4by3">
+            <img
+                :src="user.profileImage"
+                alt="User Image"
+            />
+          </figure>
+        </div>
+        <div class="card-content">
+          <div class="media">
+            <div class="media-content">
+              <p class="title is-4 has-text-black">{{ user.username }}</p>
+              <p class="subtitle is-6 has-text-grey">@{{ user.username }}</p>
+            </div>
+          </div>
+
+          <div class="content">
+            <p class="has-text-black">Email:<strong class="has-text-dark">{{ user.email }}</strong></p>
+            <p class="has-text-black">Roles</p>
+            <ul class="no-bullet has-text-left">
+              <li v-for="role in user.roles" :key="role.id" class="has-text-black">{{ role.name }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div v-else>
-    <p>Loading user information...</p>
-  </div>
+  </section>
 </template>
 
 <script>
@@ -36,18 +52,9 @@ export default {
 </script>
 
 <style scoped>
-.user-info {
-  border: 1px solid #ccc;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 400px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.user-info img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
+.no-bullet {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 </style>
