@@ -7,6 +7,7 @@ import RoleInfo from "@/pages/roles/RoleInfo.vue";
 import UserRoles from "@/pages/user-roles/UserRoles.vue";
 import LoginPage from "@/pages/auth/LoginPage.vue";
 import RegisterPage from "@/pages/auth/RegisterPage.vue";
+import UserProfile from "@/pages/users/UserProfile.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,6 +15,7 @@ const router = createRouter({
     {path: '/', redirect: '/users'},
     {path: '/users', component: UsersList},
     {path: '/users/:id', component: UserInfo, props: true},
+    {path: '/profile', component: UserProfile, props: true},
     {path: '/roles', component: RolesList},
     {path: '/roles/:id', component: RoleInfo, props: true},
     {path: '/user-roles', component: UserRoles},
