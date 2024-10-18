@@ -4,7 +4,7 @@ import "mime/multipart"
 
 type UserUpdateRequest struct {
 	Username     string                `form:"username" binding:"required"`
-	ProfileImage *multipart.FileHeader `form:"profile_image" binding:"required"`
+	ProfileImage *multipart.FileHeader `form:"profileImage"`
 }
 
 type UserUpdateServiceRequest struct {

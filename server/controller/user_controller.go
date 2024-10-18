@@ -116,10 +116,15 @@ func (userController *UserController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	profileImagePath, err := handleProfileImage(ctx, &currentUser, userUpdateRequest.ProfileImage)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, result.NewResult(false, messages.ImageError))
-		return
+	var profileImagePath string
+	if userUpdateRequest.ProfileImage != nil {
+		profileImagePath, err = handleProfileImage(ctx, &currentUser, userUpdateRequest.ProfileImage)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, result.NewResult(false, messages.ImageError))
+			return
+		}
+	} else {
+		profileImagePath = currentUser.ProfileImage
 	}
 
 	updatedUser, err := userController.userService.UpdateUser(userId, requests.UserUpdateServiceRequest{
