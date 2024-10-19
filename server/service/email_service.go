@@ -39,7 +39,7 @@ func loadEnv() (*EmailConfig, error) {
 		Username: os.Getenv("EMAIL_USERNAME"),
 		Password: os.Getenv("EMAIL_PASSWORD"),
 		From:     os.Getenv("EMAIL_FROM"),
-		BaseURL:  os.Getenv("BASE_URL"),
+		BaseURL:  os.Getenv("CLIENT_URL"),
 	}
 
 	if emailConfig.Host == "" || emailConfig.Port == "" || emailConfig.Username == "" ||
@@ -55,7 +55,7 @@ func SendActivationEmail(recipientEmail, activationToken string) error {
 		<html>
 			<body>
 				<h1>Activate your account</h1>
-				<p>Click the <a href="%s/users/activate/%s">link</a> to activate your account: </p>
+				<p>Click the <a href="%s/activate-user/%s">link</a> to activate your account: </p>
 			</body>
 		</html>
 	`, emailConfig.BaseURL, activationToken)
@@ -68,7 +68,7 @@ func SendPasswordResetEmail(recipientEmail, resetToken string) error {
 		<html>
 			<body>
 				<h1>Reset your password</h1>
-				<p>Click the <a href="%s/users/reset-password/%s">link</a> to reset your password.</p>
+				<p>Click the <a href="%s/reset-password/%s">link</a> to reset your password.</p>
 				<p>If you did not request a password reset, please ignore this email.</p>
 			</body>
 		</html>
