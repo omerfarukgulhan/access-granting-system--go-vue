@@ -7,6 +7,7 @@ import RoleInfo from "@/pages/roles/RoleInfo.vue";
 import UserRoles from "@/pages/user-roles/UserRoles.vue";
 import LoginPage from "@/pages/auth/LoginPage.vue";
 import RegisterPage from "@/pages/auth/RegisterPage.vue";
+import ActivateUser from "@/pages/auth/ActivateUser.vue";
 import UserProfile from "@/pages/users/UserProfile.vue";
 import store from "./store/index.js"
 
@@ -22,13 +23,14 @@ const router = createRouter({
     {path: '/user-roles', component: UserRoles, meta: {requiresAdmin: true}},
     {path: '/login', component: LoginPage, meta: {requiresAuth: false}},
     {path: '/register', component: RegisterPage, meta: {requiresAuth: false}},
+    {path: '/activate-user/:token', component: ActivateUser, props: true, meta: {requiresAuth: false}},
     {path: "/:notFound(.*)", component: NotFound},
   ],
 });
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = store.getters.isAuthenticated;
-  const isAdmin = store.getters.isAdmin;
+  const isAuthenticated = store.getters['auth/isAuthenticated'];
+  const isAdmin = store.getters['auth/isAdmin'];
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login');
   } else if (to.meta.requiresAdmin && !isAdmin) {
