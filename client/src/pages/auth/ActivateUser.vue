@@ -2,11 +2,14 @@
   <section class="section">
     <div class="container ">
       <div class="box has-text-centered has-background-white">
-        <h2 class="title is-4 has-text-black">Activating your account...</h2>
+        <h2 class="title is-4 has-text-black">
+          <span v-if="loading">Activating your account...</span>
+          <span v-else>Account Activation</span>
+        </h2>
         <div v-if="activationMessage" class="notification" :class="messageClass">
           {{ activationMessage }}
         </div>
-        <div v-if="activationMessage">
+        <div v-if="activationMessage && !loading">
           <button class="button is-primary mt-4" @click="goToLogin">
             Go to Login
           </button>
@@ -26,7 +29,8 @@ export default {
   data() {
     return {
       activationMessage: '',
-      messageClass: ''
+      messageClass: '',
+      loading: true,
     };
   },
   created() {
@@ -34,6 +38,7 @@ export default {
   },
   methods: {
     async activateUser() {
+      this.loading = true;
       try {
         const response = await axios.put(`${serverUrl}/activate/${this.token}`);
         if (response.data.success) {
@@ -46,6 +51,8 @@ export default {
       } catch (error) {
         this.activationMessage = 'Error activating account. Please try again later.';
         this.messageClass = 'is-danger';
+      } finally {
+        this.loading = false;
       }
     },
     goToLogin() {

@@ -13,6 +13,7 @@
                 placeholder="Email"
                 type="email"
                 required
+                :disabled="loading"
             />
           </div>
         </div>
@@ -26,15 +27,19 @@
                 placeholder="Password"
                 type="password"
                 required
+                :disabled="loading"
             />
           </div>
         </div>
         <div class="field">
           <div class="control">
-            <button type="submit" class="button is-primary is-fullwidth">Login</button>
+            <button type="submit" class="button is-primary is-fullwidth" :disabled="loading">
+              <span v-if="!loading">Login</span>
+              <span v-else>Loading...</span>
+            </button>
           </div>
         </div>
-        <p v-if="errorMessage" class="has-text-danger">{{ errorMessage }}</p>
+        <p v-if="error" class="has-text-danger">{{ error }}</p>
       </form>
     </div>
   </div>
@@ -46,16 +51,21 @@ export default {
     return {
       email: 'omer@omer.com',
       password: 'P4ssword',
-      errorMessage: '',
+      loading: false,
+      error: '',
     };
   },
   methods: {
     async handleLogin() {
+      this.loading = true;
+      this.error = '';
       try {
-        await this.$store.dispatch('auth/login', {email: this.email, password: this.password});
+        await this.$store.dispatch('auth/login', { email: this.email, password: this.password });
         this.$router.push('/');
-      } catch (error) {
-        this.errorMessage = error.message;
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Failed to login. Please try again.';
+      } finally {
+        this.loading = false;
       }
     },
   },
@@ -68,7 +78,7 @@ export default {
   justify-content: center;
   align-items: center;
   margin: 2rem;
- }
+}
 
 .box {
   width: 300px;

@@ -13,6 +13,7 @@
                 placeholder="Email"
                 type="email"
                 required
+                :disabled="loading"
             />
           </div>
         </div>
@@ -26,6 +27,7 @@
                 placeholder="Username"
                 type="text"
                 required
+                :disabled="loading"
             />
           </div>
         </div>
@@ -39,15 +41,19 @@
                 placeholder="Password"
                 type="password"
                 required
+                :disabled="loading"
             />
           </div>
         </div>
         <div class="field">
           <div class="control">
-            <button type="submit" class="button is-primary is-fullwidth">Register</button>
+            <button type="submit" class="button is-primary is-fullwidth" :disabled="loading">
+              <span v-if="!loading">Register</span>
+              <span v-else>Loading...</span>
+            </button>
           </div>
         </div>
-        <p v-if="errorMessage" class="has-text-danger">{{ errorMessage }}</p>
+        <p v-if="error" class="has-text-danger">{{ error }}</p>
       </form>
     </div>
   </div>
@@ -60,21 +66,26 @@ export default {
       email: 'faruk@faruk.com',
       username: 'username2',
       password: 'P4ssword',
-      errorMessage: '',
+      loading: false,
+      error: '',
     };
   },
   methods: {
     async handleRegister() {
+      this.loading = true;
+      this.error = '';
       try {
         await this.$store.dispatch('auth/register', {
           email: this.email,
           username: this.username,
-          password: this.password
+          password: this.password,
         });
-        alert("activate email")
+        alert('Please activate your email');
         this.$router.push('/login');
-      } catch (error) {
-        this.errorMessage = error.message;
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Registration failed. Please try again.';
+      } finally {
+        this.loading = false;
       }
     },
   },
