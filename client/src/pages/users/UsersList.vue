@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="title has-text-centered m-4">User Profile</h1>
+    <h1 class="title has-text-centered m-4">User List</h1>
     <div v-if="loading" class="has-text-centered">
       <p>Loading users...</p>
     </div>
