@@ -20,7 +20,7 @@ const router = createRouter({
     {path: '/profile', component: UserProfile, props: true, meta: {requiresAuth: true}},
     {path: '/roles', component: RolesList, meta: {requiresAdmin: true}},
     {path: '/roles/:id', component: RoleInfo, props: true, meta: {requiresAdmin: true}},
-    {path: '/user-roles', component: UserRoles, meta: {requiresAdmin: true}},
+    {path: '/user-roles/:userId', component: UserRoles, props: true, meta: {requiresAdmin: true}},
     {path: '/login', component: LoginPage, meta: {requiresAuth: false}},
     {path: '/register', component: RegisterPage, meta: {requiresAuth: false}},
     {path: '/activate-user/:token', component: ActivateUser, props: true, meta: {requiresAuth: false}},

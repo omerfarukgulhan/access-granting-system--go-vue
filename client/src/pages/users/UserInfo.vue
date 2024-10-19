@@ -25,12 +25,8 @@
         <div class="card-content">
           <p class="title is-4 has-text-black">{{ user?.username || 'Unknown User' }}</p>
           <div class="content">
-            <p class="has-text-black"><strong class="has-text-black">Email:</strong> {{ user?.email || 'No Email' }}</p>
-            <h6 class="has-text-black">Roles:</h6>
-            <ul v-if="user && user.roles && user.roles.length > 0" class="no-bullet">
-              <li v-for="role in user.roles" :key="role.id" class="has-text-black">{{ role.name }}</li>
-            </ul>
-            <p v-else class="has-text-grey">User has no roles.</p>
+            <h6 class="has-text-black">Email: {{ user?.email || 'No Email' }}</h6>
+            <UserRoles :roles="user?.roles" :userId="user.id" :isAdmin="isAdmin" @remove-role="deleteUserRole"/>
           </div>
         </div>
       </div>
@@ -39,9 +35,16 @@
 </template>
 
 <script>
+import axios from 'axios';
+import UserRoles from '../../components/user/UserRoles.vue';
+
+const serverUrl = import.meta.env.VITE_SERVER_URL + "/user-roles";
 const profileImageUrl = import.meta.env.VITE_PROFILE_IMAGE_URL;
 
 export default {
+  components: {
+    UserRoles,
+  },
   props: ['id'],
   data() {
     return {
@@ -55,6 +58,9 @@ export default {
     },
     user() {
       return this.$store.getters['users/currentUser'];
+    },
+    isAdmin() {
+      return this.$store.getters['auth/isAdmin'];
     }
   },
   methods: {
@@ -68,6 +74,22 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async deleteUserRole(roleId) {
+      this.loading = true;
+      this.error = null;
+      try {
+        await axios.delete(`${serverUrl}/${this.id}/${roleId}`, {
+          headers: {
+            Authorization: `${this.$store.getters['auth/getPrefix']} ${this.$store.getters['auth/getToken']}`,
+          },
+        });
+        await this.fetchUser();
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Failed to delete role.';
+      } finally {
+        this.loading = false;
+      }
     }
   },
   created() {
@@ -75,11 +97,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.no-bullet {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-</style>

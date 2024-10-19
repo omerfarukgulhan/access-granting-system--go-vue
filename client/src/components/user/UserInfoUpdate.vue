@@ -5,24 +5,24 @@
       <div class="field">
         <label class="label has-text-black">Username</label>
         <div class="control">
-          <input class="input" type="text" v-model="username" required :disabled="isUpdatingUser"/>
+          <input class="input" type="text" v-model="username" required :disabled="loading"/>
         </div>
       </div>
       <div class="field">
         <label class="label has-text-black">Profile Image</label>
         <div class="control">
-          <input class="input" type="file" @change="handleFileUpload" :disabled="isUpdatingUser"/>
+          <input class="input" type="file" @change="handleFileUpload" :disabled="loading"/>
         </div>
       </div>
       <div class="field">
         <div class="control">
-          <button type="submit" class="button is-primary is-fullwidth" :class="{ 'is-loading': isUpdatingUser }"
-                  :disabled="isUpdatingUser">
+          <button type="submit" class="button is-primary is-fullwidth" :class="{ 'is-loading': loading }"
+                  :disabled="loading">
             Update Info
           </button>
         </div>
       </div>
-      <p v-if="userError" class="has-text-danger">{{ userError }}</p>
+      <p v-if="error" class="has-text-danger">{{ error }}</p>
     </form>
   </div>
 </template>
@@ -34,8 +34,8 @@ export default {
     return {
       username: this.user.username,
       profileImage: '',
-      isUpdatingUser: false,
-      userError: null,
+      loading: false,
+      error: null,
     };
   },
   methods: {
@@ -43,8 +43,8 @@ export default {
       this.profileImage = event.target.files[0];
     },
     async updateUser() {
-      this.isUpdatingUser = true;
-      this.userError = null;
+      this.loading = true;
+      this.error = null;
       const formData = new FormData();
       formData.append('username', this.username);
       if (this.profileImage) {
@@ -52,10 +52,10 @@ export default {
       }
       try {
         this.$emit('user-updated', formData);
-      } catch (error) {
-        this.userError = error.response?.data?.message || 'Failed to update user information';
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Failed to update user information';
       } finally {
-        this.isUpdatingUser = false;
+        this.loading = false;
       }
     }
   }
