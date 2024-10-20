@@ -26,7 +26,7 @@
           <p class="title is-4 has-text-black">{{ user?.username || 'Unknown User' }}</p>
           <div class="content">
             <h6 class="has-text-black">Email: {{ user?.email || 'No Email' }}</h6>
-            <UserRoles :roles="user?.roles" :userId="user.id" :isAdmin="isAdmin" @remove-role="deleteUserRole"/>
+            <UsersRolesList :roles="user?.roles" :userId="user.id" :isAdmin="isAdmin" @remove-role="deleteUserRole"/>
           </div>
         </div>
       </div>
@@ -36,14 +36,14 @@
 
 <script>
 import axios from 'axios';
-import UserRoles from '../../components/user/UsersRolesList.vue';
+import UsersRolesList from '../../components/user/UsersRolesList.vue';
 
 const serverUrl = import.meta.env.VITE_SERVER_URL + "/user-roles";
 const profileImageUrl = import.meta.env.VITE_PROFILE_IMAGE_URL;
 
 export default {
   components: {
-    UserRoles,
+    UsersRolesList,
   },
   props: ['id'],
   data() {

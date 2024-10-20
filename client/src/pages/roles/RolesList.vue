@@ -1,6 +1,9 @@
 <template>
   <div>
     <h1 class="title has-text-centered m-4">Role List</h1>
+    <div class="has-text-centered">
+      <add-role @roleAdded="fetchRoles"></add-role>
+    </div>
     <div v-if="loading" class="has-text-centered">
       <p>Loading roles...</p>
     </div>
@@ -20,9 +23,12 @@
         <td>{{ role.id }}</td>
         <td>{{ role.name }}</td>
         <td class="actions-column">
+          <!-- View Role Button -->
           <button class="button is-link">
             <router-link :to="'/roles/' + role.id" class="has-text-white">View</router-link>
           </button>
+          <!-- Delete Role Button -->
+          <button class="button is-danger ml-2" @click="deleteRole(role.id)">Delete</button>
         </td>
       </tr>
       </tbody>
@@ -34,7 +40,15 @@
 </template>
 
 <script>
+import AddRole from '../../components/role/AddRole.vue';
+import axios from 'axios';
+
+const serverUrl = import.meta.env.VITE_SERVER_URL + '/roles';
+
 export default {
+  components: {
+    AddRole,
+  },
   data() {
     return {
       loading: true,
@@ -53,9 +67,21 @@ export default {
       try {
         await this.$store.dispatch('roles/fetchRoles');
       } catch (err) {
-        this.error = err.response?.data?.message || 'Failed to fetch roles. Please try again.';
+        this.error = 'Failed to fetch roles. Please try again.';
       } finally {
         this.loading = false;
+      }
+    },
+    async deleteRole(roleId) {
+      try {
+        await axios.delete(`${serverUrl}/${roleId}`, {
+          headers: {
+            Authorization: `${this.$store.getters['auth/getPrefix']} ${this.$store.getters['auth/getToken']}`,
+          }
+        });
+        this.fetchRoles(); // Refresh the role list after deletion
+      } catch (err) {
+        this.error = 'Failed to delete role. Please try again.';
       }
     }
   },
@@ -85,7 +111,7 @@ th, td {
 }
 
 .actions-column {
-  width: 100px;
+  width: 200px;
   text-align: center;
 }
 
@@ -103,5 +129,9 @@ tbody tr:hover {
 
 .notification {
   margin-top: 20px;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
 }
 </style>
