@@ -9,7 +9,6 @@
       <div class="navbar-start">
         <router-link class="navbar-item" to="/" exact>Users</router-link>
         <router-link v-if="isAdmin" class="navbar-item" to="/roles">Roles</router-link>
-        <router-link v-if="isAdmin" class="navbar-item" to="/user-roles">User Roles</router-link>
       </div>
       <div class="navbar-end">
         <div v-if="!isLoggedIn" class="navbar-item">
