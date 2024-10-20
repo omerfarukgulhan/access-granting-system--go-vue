@@ -4,15 +4,12 @@
       <h6 class="has-text-black">Roles:</h6>
       <button v-if="isAdmin" @click="addRole" class="button is-small is-link">Add Role</button>
     </div>
-
     <div v-if="loading" class="has-text-centered">
       <p>Loading...</p>
     </div>
-
     <div v-if="error" class="has-text-centered has-text-danger">
       <p>{{ error }}</p>
     </div>
-
     <ul v-if="!loading && roles && roles.length > 0" class="no-bullet">
       <li v-for="role in roles" :key="role.id"
           class="role-item is-flex is-align-items-center is-justify-content-space-between">
@@ -22,7 +19,6 @@
         </button>
       </li>
     </ul>
-
     <p v-else-if="!loading && roles.length === 0" class="has-text-grey">User has no roles.</p>
   </div>
 </template>
@@ -51,7 +47,8 @@ export default {
   },
   methods: {
     addRole() {
-      this.$router.push(`/user-roles/${this.userId}`);
+      this.$router.push(`/user-roles/add-role/${this.userId}`);
+
     },
     async removeRole(roleId) {
       console.log(roleId)
