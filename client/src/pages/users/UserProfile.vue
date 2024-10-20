@@ -1,8 +1,8 @@
 <template>
   <div class="user-profile container">
     <h1 class="title has-text-centered m-4">User Profile</h1>
-    <UserInfoUpdate :user="user" @user-updated="updateUserInfo" />
-    <UserPasswordUpdate @password-updated="updatePassword" />
+    <UserInfoUpdate :user="user" @user-updated="updateUserInfo"/>
+    <UserPasswordUpdate @password-updated="updatePassword"/>
     <div class="m-4 has-text-centered">
       <button class="button is-danger" @click="deleteAccount" :class="{ 'is-loading': isDeletingAccount }"
               :disabled="isDeletingAccount">

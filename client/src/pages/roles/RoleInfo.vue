@@ -11,9 +11,19 @@
         <div class="card-content">
           <p class="title is-4 has-text-black">{{ role?.name || 'Unknown role' }}</p>
           <div class="content">
-            <h6 class="has-text-black">Users:</h6>
+            <div class="roles-header is-flex is-align-items-center is-justify-content-space-between">
+              <h6 class="has-text-black">Roles:</h6>
+              <button @click="addUser" class="button is-small is-link">Add User</button>
+            </div>
             <ul v-if="role && role.users && role.users.length > 0" class="no-bullet">
-              <li v-for="user in role.users" :key="user.id" class="has-text-black">{{ user.username }}</li>
+              <li v-for="user in role.users" :key="user.id"
+                  class="role-item is-flex is-align-items-center is-justify-content-space-between">
+                <span class="has-text-black">{{ user.username }}</span>
+                <button @click="deleteUserRole(user.id)" class="button is-small is-danger"
+                        :disabled="loading">
+                  Remove
+                </button>
+              </li>
             </ul>
             <p v-else class="has-text-grey">role has no users.</p>
           </div>
@@ -24,6 +34,10 @@
 </template>
 
 <script>
+import axios from "axios";
+
+const serverUrl = import.meta.env.VITE_SERVER_URL + "/user-roles";
+
 export default {
   props: ['id'],
   data() {
@@ -38,6 +52,25 @@ export default {
     }
   },
   methods: {
+    addUser() {
+      this.$router.push(`/user-roles/add-user/${this.id}`);
+    },
+    async deleteUserRole(userId) {
+      this.loading = true;
+      this.error = null;
+      try {
+        await axios.delete(`${serverUrl}/${userId}/${this.id}`, {
+          headers: {
+            Authorization: `${this.$store.getters['auth/getPrefix']} ${this.$store.getters['auth/getToken']}`,
+          },
+        });
+        await this.fetchRole();
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Failed to delete user.';
+      } finally {
+        this.loading = false;
+      }
+    },
     async fetchRole() {
       this.loading = true;
       this.error = null;
@@ -62,7 +95,8 @@ export default {
   padding: 0;
   margin: 0;
 }
-.role-card{
+
+.role-card {
   width: 200px;
 }
 </style>

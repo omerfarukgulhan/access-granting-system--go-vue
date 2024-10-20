@@ -36,7 +36,7 @@
 
 <script>
 import axios from 'axios';
-import UserRoles from '../../components/user/UserRoles.vue';
+import UserRoles from '../../components/user/UsersRolesList.vue';
 
 const serverUrl = import.meta.env.VITE_SERVER_URL + "/user-roles";
 const profileImageUrl = import.meta.env.VITE_PROFILE_IMAGE_URL;
@@ -64,6 +64,9 @@ export default {
     }
   },
   methods: {
+    addRole() {
+      this.$router.push(`/user-roles/add-role/${this.id}`);
+    },
     async fetchUser() {
       this.loading = true;
       this.error = null;
