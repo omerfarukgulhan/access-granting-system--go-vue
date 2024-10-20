@@ -4,12 +4,13 @@ import UsersList from "@/pages/users/UsersList.vue";
 import UserInfo from "@/pages/users/UserInfo.vue";
 import RolesList from "@/pages/roles/RolesList.vue";
 import RoleInfo from "@/pages/roles/RoleInfo.vue";
-import UserRoles from "@/pages/user-roles/UserRoles.vue";
 import LoginPage from "@/pages/auth/LoginPage.vue";
 import RegisterPage from "@/pages/auth/RegisterPage.vue";
 import ActivateUser from "@/pages/auth/ActivateUser.vue";
 import UserProfile from "@/pages/users/UserProfile.vue";
 import store from "./store/index.js"
+import AddRoleToUser from "@/pages/user-roles/AddRoleToUser.vue";
+import AddUserToRole from "@/pages/user-roles/AddUserToRole.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -20,7 +21,8 @@ const router = createRouter({
     {path: '/profile', component: UserProfile, props: true, meta: {requiresAuth: true}},
     {path: '/roles', component: RolesList, meta: {requiresAdmin: true}},
     {path: '/roles/:id', component: RoleInfo, props: true, meta: {requiresAdmin: true}},
-    {path: '/user-roles/:userId', component: UserRoles, props: true, meta: {requiresAdmin: true}},
+    {path: '/user-roles/add-role/:userId', component: AddRoleToUser, props: true, meta: {requiresAdmin: true}},
+    {path: '/user-roles/add-user/:roleId', component: AddUserToRole, props: true, meta: {requiresAdmin: true}},
     {path: '/login', component: LoginPage, meta: {requiresAuth: false}},
     {path: '/register', component: RegisterPage, meta: {requiresAuth: false}},
     {path: '/activate-user/:token', component: ActivateUser, props: true, meta: {requiresAuth: false}},
