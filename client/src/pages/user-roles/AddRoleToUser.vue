@@ -4,11 +4,9 @@
     <h4 class="subtitle">Select a role to add to the user</h4>
     <h4>User Name: <strong>{{ user.username }}</strong></h4>
     <h4>User ID: <strong>{{ user.id }}</strong></h4>
-
     <div class="notification is-info" v-if="loading">
       Loading roles...
     </div>
-
     <ul class="list">
       <li v-for="role in roles" :key="role.id" class="m-4">
         <button class="button is-primary box" @click="addRoleToUser(role.id)">
@@ -16,7 +14,6 @@
         </button>
       </li>
     </ul>
-
     <div class="notification is-danger notification-width" v-if="error">{{ error }}</div>
     <div class="notification is-success notification-width" v-if="successMessage">{{ successMessage }}</div>
   </div>
@@ -62,7 +59,6 @@ export default {
       this.successMessage = null;
       this.error = null;
       try {
-        // Send the request to add the role to the user
         await axios.post(
             serverUrl,
             {
@@ -75,8 +71,6 @@ export default {
               },
             }
         );
-
-        // Find the role name from the roles array
         const role = this.roles.find(r => r.id === roleId);
         if (role) {
           this.successMessage = `User ${this.user.username} added to role ${role.name} successfully!`;
@@ -84,7 +78,6 @@ export default {
           this.successMessage = 'Role added successfully, but role name could not be found.';
         }
       } catch (err) {
-        // Improved error handling with more specific messages
         this.error =  'Failed to add role to user.';
       } finally {
         this.loading = false;

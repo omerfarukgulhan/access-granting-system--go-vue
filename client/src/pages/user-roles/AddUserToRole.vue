@@ -16,8 +16,8 @@
       </li>
     </ul>
 
-    <div class="notification is-danger" v-if="error">{{ error }}</div>
-    <div class="notification is-success" v-if="successMessage">{{ successMessage }}</div>
+    <div class="notification is-danger notification-width" v-if="error">{{ error }}</div>
+    <div class="notification is-success notification-width" v-if="successMessage">{{ successMessage }}</div>
   </div>
 </template>
 
@@ -65,7 +65,7 @@ export default {
             serverUrl,
             {
               userId,
-              roleId: parseInt(this.roleId)
+              roleId: parseInt(this.roleId),
             },
             {
               headers: {
@@ -73,7 +73,13 @@ export default {
               },
             }
         );
-        this.successMessage = `User ${userId} added to role ${this.roleId} successfully!`;
+
+        const user = this.users.find((u) => u.id === userId);
+        if (user) {
+          this.successMessage = `Role ${this.role.name} added to user ${user.username} successfully!`;
+        } else {
+          this.successMessage = 'Role added successfully, but user name could not be found.';
+        }
       } catch (err) {
         this.error = 'Failed to add user to role.';
       } finally {
@@ -94,6 +100,10 @@ export default {
 }
 
 .box {
-  width: 200px;
+  width: 300px;
+}
+
+.notification-width{
+  width: 300px;
 }
 </style>

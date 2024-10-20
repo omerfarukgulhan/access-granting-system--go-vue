@@ -79,7 +79,7 @@ export default {
             Authorization: `${this.$store.getters['auth/getPrefix']} ${this.$store.getters['auth/getToken']}`,
           }
         });
-        this.fetchRoles(); // Refresh the role list after deletion
+        this.fetchRoles();
       } catch (err) {
         this.error = 'Failed to delete role. Please try again.';
       }
