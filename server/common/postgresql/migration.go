@@ -3,14 +3,19 @@ package postgresql
 import (
 	"access-granting/common/security"
 	"access-granting/domain/entities"
-	"errors"
 	"log"
 
 	"gorm.io/gorm"
 )
 
 func MigrateTables(db *gorm.DB) {
-	err := db.AutoMigrate(&entities.User{}, &entities.Role{}, &entities.UserRole{})
+	err := db.Migrator().DropTable(&entities.User{}, &entities.Role{}, &entities.UserRole{})
+	if err != nil {
+		log.Fatalf("Failed to drop existing tables: %v", err)
+	}
+	log.Println("Existing tables dropped successfully.")
+
+	err = db.AutoMigrate(&entities.User{}, &entities.Role{}, &entities.UserRole{})
 	if err != nil {
 		log.Fatalf("Failed to migrate tables: %v", err)
 	}
@@ -44,60 +49,64 @@ func MigrateTables(db *gorm.DB) {
 }
 
 func SeedData(db *gorm.DB) {
-	role := entities.Role{Name: "Admin"}
-	if err := db.Where("name = ?", role.Name).First(&role).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-
-			role.Id = 1
-			if err := db.Create(&role).Error; err != nil {
-				log.Fatalf("Failed to seed roles: %v", err)
-			}
-			log.Println("Roles seeded successfully.")
-		} else {
-			log.Fatalf("Failed to check existing role: %v", err)
-		}
-	} else {
-		log.Println("Role already exists. No need to seed.")
+	roles := []entities.Role{
+		{Id: 1, Name: "Admin"},
+		{Id: 2, Name: "Editor"},
+		{Id: 3, Name: "Author"},
+		{Id: 4, Name: "Moderator"},
+		{Id: 5, Name: "Viewer"},
 	}
+	if err := db.Create(&roles).Error; err != nil {
+		log.Fatalf("Failed to seed roles: %v", err)
+	}
+	log.Println("Roles seeded successfully.")
 
 	hashedPassword, _ := security.HashPassword("P4ssword", 10)
-	user := entities.User{
-		Id:           1,
-		Username:     "username1",
-		Email:        "omer@omer.com",
-		Password:     hashedPassword,
-		ProfileImage: "default.png",
-		IsActive:     true,
+	users := []entities.User{
+		{
+			Id:           1,
+			Username:     "Omer Faruk Gulhan",
+			Email:        "omer@gulhan.com",
+			Password:     hashedPassword,
+			ProfileImage: "default.png",
+			IsActive:     true,
+		},
+		{
+			Id:           2,
+			Username:     "John Doe",
+			Email:        "john@doe.com",
+			Password:     hashedPassword,
+			ProfileImage: "default.png",
+			IsActive:     true,
+		},
+		{
+			Id:           3,
+			Username:     "Jane Doe",
+			Email:        "jane@doe.com",
+			Password:     hashedPassword,
+			ProfileImage: "default.png",
+			IsActive:     true,
+		},
+		{
+			Id:           4,
+			Username:     "Max Mustermann",
+			Email:        "max@mustermann.com",
+			Password:     hashedPassword,
+			ProfileImage: "default.png",
+			IsActive:     true,
+		},
 	}
-	var existingUser entities.User
-	if err := db.Where("email = ? OR username = ?", user.Email, user.Username).First(&existingUser).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			if err := db.Create(&user).Error; err != nil {
-				log.Fatalf("Failed to seed admin user: %v", err)
-			}
-			log.Println("Admin user seeded successfully.")
-		} else {
-			log.Fatalf("Failed to check existing user: %v", err)
-		}
-	} else {
-		log.Println("User already exists. No need to seed.")
-		return
+	if err := db.Create(&users).Error; err != nil {
+		log.Fatalf("Failed to seed users: %v", err)
 	}
+	log.Println("Users seeded successfully.")
 
 	adminRole := entities.UserRole{
-		UserId: user.Id,
-		RoleId: role.Id,
+		UserId: users[0].Id,
+		RoleId: roles[0].Id,
 	}
-	if err := db.Where("user_id = ? AND role_id = ?", adminRole.UserId, adminRole.RoleId).First(&adminRole).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			if err := db.Create(&adminRole).Error; err != nil {
-				log.Fatalf("Failed to assign admin role to user: %v", err)
-			}
-			log.Println("Admin role assigned to user successfully.")
-		} else {
-			log.Fatalf("Failed to check existing user-role association: %v", err)
-		}
-	} else {
-		log.Println("User role already exists. No need to assign.")
+	if err := db.Create(&adminRole).Error; err != nil {
+		log.Fatalf("Failed to assign admin role to user: %v", err)
 	}
+	log.Println("Admin role assigned to user successfully.")
 }
